@@ -12,6 +12,7 @@ export class UsersService {
       email: 'alice.johnson@example.com',
       phone: '+254712345001',
       role: UserRole.MANAGER,
+      isActive: false,
     },
     {
       userId: 2,
@@ -19,6 +20,7 @@ export class UsersService {
       email: 'bob.mwangi@example.com',
       phone: '+254712345002',
       role: UserRole.SELLER,
+      isActive: false,
     },
     {
       userId: 3,
@@ -26,6 +28,7 @@ export class UsersService {
       email: 'catherine.njeri@example.com',
       phone: '+254712345003',
       role: UserRole.SELLER,
+      isActive: false,
     },
     {
       userId: 4,
@@ -33,12 +36,14 @@ export class UsersService {
       email: 'david.otieno@example.com',
       phone: '+254712345004',
       role: UserRole.MANAGER,
+      isActive: false,
     },
   ];
 
   create(createUserDto: CreateUserDto) {
     const newUser: User = {
-      userId: this.users.length + 1, // Always assign yourself
+      userId: this.users.length + 1,
+      isActive: false,
       ...createUserDto,
     };
 
@@ -59,6 +64,14 @@ export class UsersService {
     if (!user) return null;
     this.users[id] = { ...user, ...updateUserDto };
     return this.users[id];
+  }
+  updateStatus(id: number) {
+    const user = this.users.find((u) => u.userId === id);
+    if (!user) {
+      return null;
+    }
+    user.isActive = !user.isActive; // toggle
+    return user;
   }
 
   remove(id: number) {

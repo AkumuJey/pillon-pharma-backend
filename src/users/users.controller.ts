@@ -38,6 +38,10 @@ export class UsersController {
   ) {
     return this.usersService.update(+id, updateUserDto);
   }
+  @Patch(':id/status')
+  updateStatus(@Param('id') id: string) {
+    return this.usersService.updateStatus(+id);
+  }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
