@@ -8,9 +8,23 @@ import { PharmacyModule } from './pharmacy/pharmacy.module';
 import { PaymentsModule } from './payments/payments.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { ConfigModule } from '@nestjs/config';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
-  imports: [UsersModule, DrugsModule, SalesModule, PharmacyModule, PaymentsModule, SubscriptionModule, AnalyticsModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    UsersModule,
+    DrugsModule,
+    SalesModule,
+    PharmacyModule,
+    PaymentsModule,
+    SubscriptionModule,
+    AnalyticsModule,
+    PrismaModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
