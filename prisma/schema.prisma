@@ -1,5 +1,5 @@
 generator client {
-  provider   = "prisma-client" // or `prisma-client-js`
+  provider   = "prisma-client-js"
   output     = "../generated/prisma"
   engineType = "client"
 }
@@ -8,26 +8,18 @@ datasource db {
   provider = "mysql"
 }
 
-model Pharmacy {
-  id        Int      @id @default(autoincrement())
-  name      String
-  address   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 model User {
   id        Int      @id @default(autoincrement())
   name      String
   email     String   @unique
-  phone     String?
-  role      UserRole @default(SELLER)
   password  String
+  phone     String?
+  role      UserRole @default(ADMIN)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 enum UserRole {
-  MANAGER
+  ADMIN
   SELLER
 }
