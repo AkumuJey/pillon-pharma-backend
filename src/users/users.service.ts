@@ -8,7 +8,9 @@ export class UsersService {
     return 'Hello Akumu';
   }
 
-  findAll() {}
+  findAll() {
+    return 'Hello Akumu';
+  }
 
   findOne() {}
 
