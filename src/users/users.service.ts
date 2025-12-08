@@ -1,19 +1,21 @@
 import { Injectable } from '@nestjs/common';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  constructor() {}
-
-  create() {
-    return 'Hello Akumu';
+  private readonly users = [
+    {
+      userId: 1,
+      username: 'john',
+      password: 'changeme',
+    },
+    {
+      userId: 2,
+      username: 'maria',
+      password: 'guess',
+    },
+  ];
+  findOne(username: string): User | undefined {
+    return this.users.find((user) => user.username === username);
   }
-
-  findAll() {
-    return 'Hello Akumu';
-  }
-
-  findOne() {}
-
-  update() {}
-  remove() {}
 }

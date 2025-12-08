@@ -1,23 +1,33 @@
-import { Injectable } from '@nestjs/common';
-import { betterAuth } from 'better-auth';
-import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthService {
-  public auth: ReturnType<typeof betterAuth>;
-
-  constructor(private prisma: PrismaService) {
-    this.auth = betterAuth({
-      database: prismaAdapter(this.prisma, {
-        provider: 'mysql',
-      }),
-      emailAndPassword: {
-        enabled: true,
-      },
-      trustedOrigins: [process.env.TRUSTED_ORIGIN || 'http://localhost:3001'],
-      baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
-      secret: process.env.BETTER_AUTH_SECRET || 'super-secret-key',
-    });
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+  ) {}
+  validateUser(username: string, pass: string) {
+    const user = this.usersService.findOne(username);
+    if (user && user.password === pass) {
+      return {
+        username: user.username,
+        userId: user.userId,
+      };
+    }
+    return null;
+  }
+  authenticate(input: { username: string; password: string }) {
+    const user = this.validateUser(input.username, input.password);
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    return this.login(user);
+  }
+  async login(user: { username: string; userId: number }) {
+    const payload = { username: user.username, sub: user.userId };
+    const access_token = await this.jwtService.signAsync(payload);
+    return { access_token, ...payload };
   }
 }
