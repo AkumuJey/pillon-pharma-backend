@@ -13,6 +13,7 @@ import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './local-auth.guard';
 import { PassportJwtAuthGuard } from '../passport/passport-jwt-guard';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { UserLoginDto } from './dto/dto/user-login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -20,7 +21,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   // @UseGuards(LocalAuthGuard)
   @Post('login')
-  login(@Body() body: { email: string; password: string }) {
+  login(@Body() body: UserLoginDto) {
     return this.authService.authenticate(body);
   }
   @Post('sign-up')
