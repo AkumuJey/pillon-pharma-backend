@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
@@ -11,20 +12,20 @@ import type { Request } from 'express';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './local-auth.guard';
 import { PassportJwtAuthGuard } from '../passport/passport-jwt-guard';
-
-interface LoginUser {
-  username: string;
-  userId: number;
-}
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
   @HttpCode(HttpStatus.OK)
-  @UseGuards(LocalAuthGuard)
+  // @UseGuards(LocalAuthGuard)
   @Post('login')
-  login(@Req() req: Request) {
-    return this.authService.login(req.user as LoginUser);
+  login(@Body() body: { email: string; password: string }) {
+    return this.authService.authenticate(body);
+  }
+  @Post('sign-up')
+  async signUp(@Body() body: CreateUserDto) {
+    return this.authService.signUp(body);
   }
   @Get('profile')
   @UseGuards(PassportJwtAuthGuard)
