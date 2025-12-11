@@ -8,9 +8,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { AuthService } from '../auth/auth.service';
-import { LocalAuthGuard } from '../auth/local-auth.guard';
-import { PassportJwtAuthGuard } from './passport-jwt-guard';
+import { AuthService } from './auth.service';
+import { LocalAuthGuard } from './local-auth.guard';
+import { PassportJwtAuthGuard } from '../passport/passport-jwt-guard';
 
 interface LoginUser {
   username: string;
@@ -18,7 +18,7 @@ interface LoginUser {
 }
 
 @Controller('auth')
-export class PassportAuthController {
+export class AuthController {
   constructor(private readonly authService: AuthService) {}
   @HttpCode(HttpStatus.OK)
   @UseGuards(LocalAuthGuard)

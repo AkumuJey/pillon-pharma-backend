@@ -6,7 +6,7 @@ import { jwtConstants } from '../config/constants';
 import { AuthService } from './auth.service';
 import { LocalStrategy } from '../strategy/local.strategy';
 
-import { PassportAuthController } from '../passport/passport-auth.controller';
+import { AuthController } from './passpauth.controller';
 import { JwtStrategy } from '../strategy/jwt-strategy';
 
 @Module({
@@ -19,7 +19,7 @@ import { JwtStrategy } from '../strategy/jwt-strategy';
       signOptions: { expiresIn: '1hr' },
     }),
   ],
-  controllers: [PassportAuthController],
+  controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtStrategy],
 })
 export class AuthModule {}
