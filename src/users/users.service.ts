@@ -5,9 +5,10 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { User } from 'src/generated/prisma/client';
+import { User, UserRole } from 'src/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { UserDetails } from './entities/userDetails.entity';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -50,5 +51,55 @@ export class UsersService {
       }
       throw new InternalServerErrorException('Failed to create user');
     }
+  }
+
+  async getAllUsers(): Promise<UserDetails[]> {
+    const users = await this.prismaClient.prisma.user.findMany();
+    return users.map(({ password, ...user }) => user);
+  }
+  async countUsers(): Promise<number> {
+    return this.prismaClient.prisma.user.count();
+  }
+  async getUserById(id: string): Promise<UserDetails | null> {
+    const user = await this.prismaClient.prisma.user.findUnique({
+      where: { id },
+    });
+    if (!user) {
+      return null;
+    }
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await this.prismaClient.prisma.user.delete({
+      where: { id },
+    });
+  }
+  async updateUser(
+    id: string,
+    updateData: UpdateUserDto,
+  ): Promise<UserDetails | null> {
+    if (updateData.password) {
+      updateData.password = await this.encryptPassword(updateData.password);
+    }
+
+    const updatedUser = await this.prismaClient.prisma.user.update({
+      where: { id },
+      data: updateData,
+    });
+    const { password, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
+  }
+  async updateUserRole(
+    id: string,
+    role: UserRole,
+  ): Promise<UserDetails | null> {
+    const updatedUser = await this.prismaClient.prisma.user.update({
+      where: { id },
+      data: { role },
+    });
+    const { password, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
   }
 }
