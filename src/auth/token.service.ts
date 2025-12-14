@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { SessionService } from 'src/session/session.service';
@@ -7,7 +7,7 @@ interface JwtPayload {
   email: string;
   sub: string;
 }
-
+@Injectable()
 export class TokenService {
   constructor(
     private jwtService: JwtService,
@@ -29,7 +29,6 @@ export class TokenService {
   }
   async generateTokens(userId: string, email: string) {
     const payload = { email, sub: userId };
-
     const accessToken = await this.generateAccessToken(payload);
     const refreshToken = await this.generateRefreshToken(payload);
     const refreshTokenExpiry = this.refreshTokenExpiry();

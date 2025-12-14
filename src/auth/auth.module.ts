@@ -33,5 +33,6 @@ import { TokenService } from './token.service';
     PrismaService,
     TokenService,
   ],
+  exports: [AuthService, TokenService],
 })
 export class AuthModule {}
