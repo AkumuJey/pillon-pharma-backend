@@ -1,5 +1,5 @@
 import { Controller } from '@nestjs/common';
-import { SessionService } from './session.service';
+import { SessionService } from '../session/session.service';
 
 @Controller('session')
 export class SessionController {

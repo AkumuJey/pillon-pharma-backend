@@ -11,6 +11,7 @@ import { JwtStrategy } from '../strategy/jwt-strategy';
 import { SessionService } from 'src/session/session.service';
 import { SessionModule } from 'src/session/session.module';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { TokenService } from './token.service';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
     JwtStrategy,
     SessionService,
     PrismaService,
+    TokenService,
   ],
 })
 export class AuthModule {}
