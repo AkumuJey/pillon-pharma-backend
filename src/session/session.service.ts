@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSessionDto } from './dto/CreateSessionDto';
 import * as bcrypt from 'bcrypt';
@@ -29,5 +29,23 @@ export class SessionService {
       },
     });
     return newSession;
+  }
+
+  async invalidateSession(sessionId: string) {
+    await this.prismaClient.prisma.session.delete({
+      where: { id: sessionId },
+    });
+  }
+
+  async checkRefreshToken(userId: string) {
+    try {
+      const session = await this.prismaClient.prisma.session.findFirst({
+        where: { userId },
+      });
+      return session;
+    } catch (err) {
+      throw new UnauthorizedException('Invalid session');
+      console.error(err);
+    }
   }
 }

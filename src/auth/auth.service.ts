@@ -69,6 +69,19 @@ export class AuthService {
     refreshTokenExpiry.setDate(refreshTokenExpiry.getDate() + 7);
     return { accessToken, refreshToken, refreshTokenExpiry };
   }
+
+  async validateToken(token: string) {
+    try {
+      const decoded: { email: string; sub: string } =
+        await this.jwtService.verifyAsync(token, {
+          secret: process.env.JWT_ACCESS_SECRET,
+        });
+      return decoded;
+    } catch (err) {
+      console.log('Token validation error:', err);
+      throw new UnauthorizedException('Invalid token');
+    }
+  }
   refreshTokenExpiry(): Date {
     const refreshTokenExpiry = new Date();
     refreshTokenExpiry.setDate(refreshTokenExpiry.getDate() + 7);
