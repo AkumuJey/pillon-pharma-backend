@@ -8,10 +8,14 @@ import { LocalStrategy } from '../strategy/local.strategy';
 
 import { AuthController } from './passpauth.controller';
 import { JwtStrategy } from '../strategy/jwt-strategy';
+import { SessionService } from 'src/session/session.service';
+import { SessionModule } from 'src/session/session.module';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
   imports: [
     UsersModule,
+    SessionModule,
     PassportModule,
     JwtModule.register({
       global: true,
@@ -20,6 +24,12 @@ import { JwtStrategy } from '../strategy/jwt-strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    SessionService,
+    PrismaService,
+  ],
 })
 export class AuthModule {}
