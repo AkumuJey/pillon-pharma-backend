@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsDate, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateSessionDto {
   @IsString()
@@ -12,4 +12,9 @@ export class CreateSessionDto {
   @IsString()
   @IsOptional()
   userAgent?: string;
+  @IsString()
+  @IsNotEmpty()
+  jti: string;
+  @IsDate()
+  expiresAt: Date;
 }

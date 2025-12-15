@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSessionDto } from '../session/dto/CreateSessionDto';
 import * as bcrypt from 'bcrypt';
@@ -7,36 +11,47 @@ import * as bcrypt from 'bcrypt';
 export class SessionService {
   constructor(private prismaClient: PrismaService) {}
 
-  async createSession(expiresAt: Date, sessionData: CreateSessionDto) {
-    const { userId, refreshToken, ipAddress, userAgent } = sessionData;
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-    const newSession = await this.prismaClient.prisma.session.create({
-      data: {
-        userId,
-        refreshToken: hashedRefreshToken,
-        ipAddress,
-        userAgent,
-        expiresAt,
-      },
-    });
-    return newSession;
-  }
-
-  async invalidateSession(sessionId: string) {
-    await this.prismaClient.prisma.session.delete({
-      where: { id: sessionId },
-    });
-  }
-
-  async findRefreshToken(userId: string) {
+  async createSession(sessionData: CreateSessionDto) {
     try {
-      const session = await this.prismaClient.prisma.session.findFirst({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
+      const { userId, refreshToken, ipAddress, userAgent, jti, expiresAt } =
+        sessionData;
+      const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+      const newSession = await this.prismaClient.prisma.session.create({
+        data: {
+          userId,
+          refreshToken: hashedRefreshToken,
+          ipAddress,
+          userAgent,
+          expiresAt,
+          tokenId: jti,
+        },
       });
+      return newSession;
+    } catch {
+      throw new BadRequestException('Could not create session');
+    }
+  }
+
+  async deleteSessionByTokenId(jti: string) {
+    try {
+      await this.prismaClient.prisma.session.delete({
+        where: { tokenId: jti },
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid session');
+    }
+  }
+
+  async findRefreshTokenById(jti: string) {
+    try {
+      const session = await this.prismaClient.prisma.session.findUnique({
+        where: { tokenId: jti },
+      });
+      if (!session) {
+        throw new UnauthorizedException('Invalid session');
+      }
       return session;
-    } catch (err) {
-      console.error(err);
+    } catch {
       throw new UnauthorizedException('Invalid session');
     }
   }
@@ -44,6 +59,7 @@ export class SessionService {
     sessionId: string,
     refreshToken: string,
     expiresAt: Date,
+    jti: string,
   ) {
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
     const updatedSession = await this.prismaClient.prisma.session.update({
@@ -51,8 +67,16 @@ export class SessionService {
       data: {
         refreshToken: hashedRefreshToken,
         expiresAt,
+        tokenId: jti,
       },
     });
     return updatedSession;
+  }
+
+  async deleteAll() {
+    return await this.prismaClient.prisma.session.deleteMany({});
+  }
+  async getSessions() {
+    return await this.prismaClient.prisma.session.findMany({});
   }
 }

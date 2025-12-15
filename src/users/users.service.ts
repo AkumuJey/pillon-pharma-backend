@@ -7,7 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User, UserRole } from 'src/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
-import { UserDetails } from './entities/userDetails.entity';
+import { UserProfileDetails } from './entities/userDetails.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
@@ -30,7 +30,7 @@ export class UsersService {
   ): Promise<boolean> {
     return bcrypt.compare(plainPassword, hashedPassword);
   }
-  async createUser(data: CreateUserDto): Promise<UserDetails | null> {
+  async createUser(data: CreateUserDto): Promise<UserProfileDetails | null> {
     try {
       const { password, email, name, role, phone } = data;
       const hashedPassword = await this.encryptPassword(password);
@@ -53,14 +53,14 @@ export class UsersService {
     }
   }
 
-  async getAllUsers(): Promise<UserDetails[]> {
+  async getAllUsers(): Promise<UserProfileDetails[]> {
     const users = await this.prismaClient.prisma.user.findMany();
     return users.map(({ password, ...user }) => user);
   }
   async countUsers(): Promise<number> {
     return this.prismaClient.prisma.user.count();
   }
-  async getUserById(id: string): Promise<UserDetails | null> {
+  async getUserById(id: string): Promise<UserProfileDetails | null> {
     const user = await this.prismaClient.prisma.user.findUnique({
       where: { id },
     });
@@ -79,7 +79,7 @@ export class UsersService {
   async updateUser(
     id: string,
     updateData: UpdateUserDto,
-  ): Promise<UserDetails | null> {
+  ): Promise<UserProfileDetails | null> {
     if (updateData.password) {
       updateData.password = await this.encryptPassword(updateData.password);
     }
@@ -94,7 +94,7 @@ export class UsersService {
   async updateUserRole(
     id: string,
     role: UserRole,
-  ): Promise<UserDetails | null> {
+  ): Promise<UserProfileDetails | null> {
     const updatedUser = await this.prismaClient.prisma.user.update({
       where: { id },
       data: { role },

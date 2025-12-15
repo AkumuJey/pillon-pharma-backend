@@ -29,6 +29,7 @@ enum UserRole {
 model Session {
   id           String   @id @default(cuid())
   userId       String
+  tokenId      String   @unique // unique identifier for the token
   refreshToken String   @unique // store the refresh token
   expiresAt    DateTime // when refresh token should expire
   ipAddress    String?

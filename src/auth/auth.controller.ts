@@ -1,20 +1,20 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Post,
   Req,
   Res,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 // import { LocalAuthGuard } from './local-auth.guard';
-import { PassportJwtAuthGuard } from '../passport/passport-jwt-guard';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { PassportJwtAuthGuard } from '../passport/passport-jwt-guard';
 import { UserLoginDto } from './dto/dto/user-login.dto';
 
 @Controller('auth')
@@ -27,10 +27,8 @@ export class AuthController {
     @Body() body: UserLoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { accessToken, refreshToken, user } =
-      await this.authService.authenticate(body);
-    this.authService.attachTokensToCookies(accessToken, refreshToken, res);
-    return { user };
+    const user = await this.authService.signIn(res, body);
+    return user;
   }
 
   @Post('refresh')
@@ -38,20 +36,16 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    try {
-      const cookies = req.cookies as Record<string, string | undefined>;
-      const refreshToken: string | undefined = cookies?.refreshToken;
-      if (!refreshToken) {
-        throw new Error('No refresh token provided');
-      }
-      const { accessToken, refreshToken: newRefreshToken } =
-        await this.authService.refreshTokens(refreshToken);
-      this.authService.attachTokensToCookies(accessToken, newRefreshToken, res);
-      return { accessToken: newRefreshToken };
-    } catch {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
+    await this.authService.refreshTokens(req, res);
   }
+
+  @Post('logout')
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    console.log('It got here');
+    await this.authService.signOut(req, res);
+    return { message: 'Successful logout' };
+  }
+
   @Post('sign-up')
   async signUp(@Body() body: CreateUserDto) {
     return this.authService.signUp(body);
@@ -60,5 +54,16 @@ export class AuthController {
   @UseGuards(PassportJwtAuthGuard)
   getProfile(@Req() request: Request) {
     return request.user;
+  }
+  @Delete()
+  deleteAllSessions() {
+    return this.authService.deleteAllSessions();
+  }
+  @Get('/sessions')
+  async getAllSession() {
+    console.log('Geting sessions');
+    const results = await this.authService.getAllTokens();
+    console.log(results);
+    return results;
   }
 }

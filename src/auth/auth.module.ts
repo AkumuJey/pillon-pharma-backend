@@ -6,7 +6,7 @@ import { jwtConstants } from '../config/constants';
 import { AuthService } from './auth.service';
 import { LocalStrategy } from '../strategy/local.strategy';
 
-import { AuthController } from './passpauth.controller';
+import { AuthController } from './auth.controller';
 import { JwtStrategy } from '../strategy/jwt-strategy';
 import { SessionService } from 'src/session/session.service';
 import { SessionModule } from 'src/session/session.module';
