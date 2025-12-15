@@ -31,18 +31,23 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    return this.login(user);
+    return await this.login(user);
   }
 
   async login(user: { email: string; userId: string }) {
-    const { accessToken, refreshToken, newSessionData } =
-      await this.tokenService.generateTokens(user.userId, user.email);
+    const results = await this.tokenService.generateTokens(
+      user.userId,
+      user.email,
+    );
 
-    return { accessToken, refreshToken, newSessionData };
+    return { user, ...results };
   }
 
   async signUp(data: CreateUserDto) {
-    const user = await this.usersService.createUser(data);
-    return user;
+    return await this.usersService.createUser(data);
+  }
+
+  async refreshTokens(token: string) {
+    return await this.tokenService.refreshTokens(token);
   }
 }

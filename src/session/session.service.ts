@@ -22,9 +22,9 @@ export class SessionService {
     return newSession;
   }
 
-  async invalidateSession(sessionId: string, userId: string) {
+  async invalidateSession(sessionId: string) {
     await this.prismaClient.prisma.session.delete({
-      where: { id: sessionId, userId },
+      where: { id: sessionId },
     });
   }
 
@@ -32,11 +32,27 @@ export class SessionService {
     try {
       const session = await this.prismaClient.prisma.session.findFirst({
         where: { userId },
+        orderBy: { createdAt: 'desc' },
       });
       return session;
     } catch (err) {
       console.error(err);
       throw new UnauthorizedException('Invalid session');
     }
+  }
+  async updateSession(
+    sessionId: string,
+    refreshToken: string,
+    expiresAt: Date,
+  ) {
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+    const updatedSession = await this.prismaClient.prisma.session.update({
+      where: { id: sessionId },
+      data: {
+        refreshToken: hashedRefreshToken,
+        expiresAt,
+      },
+    });
+    return updatedSession;
   }
 }

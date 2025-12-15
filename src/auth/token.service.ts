@@ -14,18 +14,16 @@ export class TokenService {
     private sessionService: SessionService,
   ) {}
   async generateAccessToken(payload: JwtPayload) {
-    const accessToken = await this.jwtService.signAsync(payload, {
+    return await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_ACCESS_SECRET,
       expiresIn: '15m',
     });
-    return accessToken;
   }
   async generateRefreshToken(payload: JwtPayload) {
-    const refreshToken = await this.jwtService.signAsync(payload, {
+    return await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_REFRESH_SECRET,
       expiresIn: '7d',
     });
-    return refreshToken;
   }
   async generateTokens(userId: string, email: string) {
     const payload = { email, sub: userId };
@@ -44,18 +42,6 @@ export class TokenService {
     return { accessToken, refreshToken, newSessionData };
   }
 
-  async validateToken(token: string) {
-    try {
-      const decoded: { email: string; sub: string } =
-        await this.jwtService.verifyAsync(token, {
-          secret: process.env.JWT_ACCESS_SECRET,
-        });
-      return decoded;
-    } catch (err) {
-      console.log('Token validation error:', err);
-      throw new UnauthorizedException('Invalid token');
-    }
-  }
   refreshTokenExpiry(): Date {
     const refreshTokenExpiry = new Date();
     refreshTokenExpiry.setDate(refreshTokenExpiry.getDate() + 7);
@@ -66,6 +52,47 @@ export class TokenService {
     plainToken: string,
     hashedToken: string,
   ): Promise<boolean> {
-    return bcrypt.compare(plainToken, hashedToken);
+    return await bcrypt.compare(plainToken, hashedToken);
+  }
+  async validateRefreshToken(token: string): Promise<JwtPayload> {
+    try {
+      return await this.jwtService.verifyAsync(token, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid token');
+    }
+  }
+
+  async refreshTokens(refreshToken: string) {
+    try {
+      const { email, sub: userId } =
+        await this.validateRefreshToken(refreshToken);
+      const session = await this.sessionService.findRefreshToken(userId);
+      if (!session) {
+        throw new UnauthorizedException('Invalid session');
+      }
+      const isTokenValid = await this.compareTokens(
+        refreshToken,
+        session.refreshToken,
+      );
+      if (!isTokenValid || session.expiresAt < new Date()) {
+        await this.sessionService.invalidateSession(session.id);
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+      const {
+        accessToken,
+        refreshToken: newRefreshToken,
+        newSessionData,
+      } = await this.generateTokens(userId, email);
+      await this.sessionService.updateSession(
+        session.id,
+        newRefreshToken,
+        newSessionData.expiresAt,
+      );
+      return { accessToken, refreshToken: newRefreshToken, newSessionData };
+    } catch {
+      throw new UnauthorizedException('Could not refresh tokens');
+    }
   }
 }
