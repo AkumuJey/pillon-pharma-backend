@@ -17,7 +17,6 @@ import { PassportJwtAuthGuard } from '../passport/passport-jwt-guard';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UserLoginDto } from './dto/dto/user-login.dto';
 
-const isProd = process.env.NODE_ENV === 'production';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -30,18 +29,7 @@ export class AuthController {
   ) {
     const { accessToken, refreshToken, user } =
       await this.authService.authenticate(body);
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'strict' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'strict' : 'lax',
-      maxAge: 15 * 60 * 1000, // 15 minutes
-    });
+    this.authService.attachTokensToCookies(accessToken, refreshToken, res);
     return { user };
   }
 
@@ -52,27 +40,14 @@ export class AuthController {
   ) {
     try {
       const cookies = req.cookies as Record<string, string | undefined>;
-      console.log(cookies);
       const refreshToken: string | undefined = cookies?.refreshToken;
       if (!refreshToken) {
         throw new Error('No refresh token provided');
       }
       const { accessToken, refreshToken: newRefreshToken } =
         await this.authService.refreshTokens(refreshToken);
-      res.cookie('refreshToken', newRefreshToken, {
-        httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? 'strict' : 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
-      res.cookie('accessToken', accessToken, {
-        httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? 'strict' : 'lax',
-        path: '/', // sent with all requests
-        maxAge: 15 * 60 * 1000, // 15 minutes
-      });
-      return { accessToken };
+      this.authService.attachTokensToCookies(accessToken, newRefreshToken, res);
+      return { accessToken: newRefreshToken };
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }

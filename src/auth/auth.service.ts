@@ -3,6 +3,7 @@ import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UsersService } from 'src/users/users.service';
 import { UserLoginDto } from './dto/dto/user-login.dto';
 import { TokenService } from './token.service';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -33,13 +34,30 @@ export class AuthService {
     }
     return await this.login(user);
   }
-
+  attachTokensToCookies(
+    accessToken: string,
+    refreshToken: string,
+    res: Response,
+  ) {
+    const isProd = process.env.NODE_ENV === 'production';
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'strict' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'strict' : 'lax',
+      maxAge: 15 * 60 * 1000,
+    });
+  }
   async login(user: { email: string; userId: string }) {
     const results = await this.tokenService.generateTokens(
       user.userId,
       user.email,
     );
-
     return { user, ...results };
   }
 
