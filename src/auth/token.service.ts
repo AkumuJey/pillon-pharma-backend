@@ -68,12 +68,13 @@ export class TokenService {
       jti: tokens.jti,
     });
     console.log(newSessionData);
-    return { ...tokens, newSessionData };
+    return newSessionData;
   }
 
   refreshTokenExpiry(): Date {
     const expiry = new Date();
     expiry.setDate(expiry.getDate() + 7);
+    console.log('Here1: ', expiry);
     return expiry;
   }
 

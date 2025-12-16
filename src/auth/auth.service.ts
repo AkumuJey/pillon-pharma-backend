@@ -49,17 +49,20 @@ export class AuthService {
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? 'strict' : 'lax',
+      path: '/',
       maxAge: refreshAge ? refreshAge : 7 * 24 * 60 * 60 * 1000,
     });
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? 'strict' : 'lax',
+      path: '/',
       maxAge: 15 * 60 * 1000,
     });
   }
   async tokenizeLogin(user: UserLoginDetails) {
     const results = await this.tokenService.generateTokens(user.id, user.email);
+    await this.tokenService.storeRefreshToken(results, user.id);
     return { user, ...results };
   }
 

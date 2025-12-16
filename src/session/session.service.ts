@@ -15,6 +15,7 @@ export class SessionService {
     try {
       const { userId, refreshToken, ipAddress, userAgent, jti, expiresAt } =
         sessionData;
+      console.log('Here 2', expiresAt);
       const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
       const newSession = await this.prismaClient.prisma.session.create({
         data: {
