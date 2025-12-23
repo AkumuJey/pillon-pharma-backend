@@ -39,3 +39,150 @@ model Session {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model Drug {
+  id                     String  @id @default(cuid())
+  brandName              String
+  genericName            String?
+  dosage                 String
+  barcode                String? @unique
+  isPrescriptionRequired Boolean @default(false)
+
+  // Minimum allowed selling price
+  standardSellingPrice Decimal
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  categoryId String?
+  category   DrugCategory? @relation(fields: [categoryId], references: [id])
+
+  inventoryBatches InventoryBatch[]
+  saleItems        SaleItem[]
+
+  @@index([brandName])
+  @@index([genericName])
+}
+
+model DrugCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  drugs Drug[]
+}
+
+//////////////////////////////////////////////////////
+// SUPPLIERS
+//////////////////////////////////////////////////////
+
+model Supplier {
+  id            String   @id @default(cuid())
+  name          String
+  contactPerson String?
+  phone         String?
+  email         String?
+  address       String?
+  createdAt     DateTime @default(now())
+
+  inventoryBatches InventoryBatch[]
+}
+
+//////////////////////////////////////////////////////
+// INVENTORY (PHYSICAL STOCK)
+//////////////////////////////////////////////////////
+
+model InventoryBatch {
+  id          String   @id @default(cuid())
+  batchNumber String
+  expiryDate  DateTime
+
+  quantityReceived  Int
+  quantityRemaining Int
+
+  // Cost & pricing
+  buyingPrice          Decimal
+  sellingPriceSnapshot Decimal
+
+  receivedAt DateTime @default(now())
+  isActive   Boolean  @default(true)
+
+  drugId     String
+  supplierId String?
+
+  drug     Drug      @relation(fields: [drugId], references: [id])
+  supplier Supplier? @relation(fields: [supplierId], references: [id])
+
+  stockMovements StockMovement[]
+  saleItems      SaleItem[]
+
+  @@unique([drugId, batchNumber])
+}
+
+//////////////////////////////////////////////////////
+// SALES (POS)
+//////////////////////////////////////////////////////
+
+model Sale {
+  id            String        @id @default(cuid())
+  totalAmount   Decimal
+  paymentMethod PaymentMethod
+  createdBy     Int
+  createdAt     DateTime      @default(now())
+
+  saleItems SaleItem[]
+
+  @@index([createdAt])
+}
+
+model SaleItem {
+  id         String  @id @default(cuid())
+  quantity   Int
+  unitPrice  Decimal
+  totalPrice Decimal
+
+  saleId           String
+  drugId           String
+  inventoryBatchId String
+
+  sale           Sale           @relation(fields: [saleId], references: [id])
+  drug           Drug           @relation(fields: [drugId], references: [id])
+  inventoryBatch InventoryBatch @relation(fields: [inventoryBatchId], references: [id])
+}
+
+//////////////////////////////////////////////////////
+// STOCK MOVEMENTS (AUDIT LEDGER)
+//////////////////////////////////////////////////////
+
+model StockMovement {
+  id           String            @id @default(cuid())
+  movementType StockMovementType
+  quantity     Int
+  referenceId  Int?
+  createdAt    DateTime          @default(now())
+
+  inventoryBatchId String
+  inventoryBatch   InventoryBatch @relation(fields: [inventoryBatchId], references: [id])
+
+  @@index([movementType])
+  @@index([createdAt])
+}
+
+//////////////////////////////////////////////////////
+// ENUMS
+//////////////////////////////////////////////////////
+
+enum StockMovementType {
+  PURCHASE
+  SALE
+  ADJUSTMENT_IN
+  ADJUSTMENT_OUT
+  EXPIRED
+}
+
+enum PaymentMethod {
+  CASH
+  MPESA
+}
