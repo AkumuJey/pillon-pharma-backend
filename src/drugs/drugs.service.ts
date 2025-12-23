@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateDrugDto } from './dto/create-drug.dto';
 import { UpdateDrugDto } from './dto/update-drug.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -77,19 +81,28 @@ export class DrugsService {
       isPrescriptionRequired,
       standardSellingPrice,
     } = updateDrugDto;
-    const updatedDrug = await this.prismaClient.prisma.drug.update({
-      where: { id },
-      data: {
-        barcode,
-        brandName,
-        categoryId,
-        dosage,
-        genericName,
-        isPrescriptionRequired,
-        standardSellingPrice,
-      },
-    });
-    return updatedDrug;
+
+    try {
+      const updatedDrug = await this.prismaClient.prisma.drug.update({
+        where: { id },
+        data: {
+          barcode,
+          brandName,
+          categoryId,
+          dosage,
+          genericName,
+          isPrescriptionRequired,
+          standardSellingPrice,
+        },
+      });
+      return updatedDrug;
+    } catch (error) {
+      // Prisma “record not found” error
+      if (error?.code === 'P2025') {
+        throw new NotFoundException(`Drug category with id ${id} not found`);
+      }
+      throw new BadRequestException('Failed to update drug category');
+    }
   }
 
   async remove(id: string) {

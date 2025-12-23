@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { SessionModule } from './session/session.module';
 import { DrugsModule } from './drugs/drugs.module';
+import { DrugCategoryModule } from './drug-category/drug-category.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { DrugsModule } from './drugs/drugs.module';
     AuthModule,
     SessionModule,
     DrugsModule,
+    DrugCategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
