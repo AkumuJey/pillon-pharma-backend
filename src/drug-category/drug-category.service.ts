@@ -11,8 +11,8 @@ import { PrismaClient } from 'src/generated/prisma/client';
 @Injectable()
 export class DrugCategoryService {
   private readonly prisma: PrismaClient;
-  constructor(private prismaClient: PrismaService) {
-    this.prisma = this.prismaClient.prisma;
+  constructor(private prismaService: PrismaService) {
+    this.prisma = this.prismaService.prisma;
   }
   async create(createDrugCategoryDto: CreateDrugCategoryDto) {
     const { description, name } = createDrugCategoryDto;
