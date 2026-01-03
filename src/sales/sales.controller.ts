@@ -1,6 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { SalesService } from './sales.service';
-import { CreateSaleDto } from './dto/create-sale.dto';
+import { CreateSaleDto, RevokeSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
 
 @Controller('sales')
@@ -9,7 +17,12 @@ export class SalesController {
 
   @Post()
   create(@Body() createSaleDto: CreateSaleDto) {
-    return this.salesService.create(createSaleDto);
+    return 'Hello';
+  }
+
+  @Post()
+  revoke(@Body() revokeSaleDto: RevokeSaleDto) {
+    return this.salesService.revokeSale('', '', revokeSaleDto);
   }
 
   @Get()

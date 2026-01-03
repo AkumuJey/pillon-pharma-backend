@@ -93,7 +93,7 @@ export class SalesService {
       // 1️⃣ Fetch the sale with items and void relation
       const sale = await tx.sale.findUniqueOrThrow({
         where: { id: saleId },
-        include: { saleItems: true, void: true },
+        include: { saleItems: true },
       });
 
       if (!sale) {
@@ -101,22 +101,12 @@ export class SalesService {
       }
 
       // 2️⃣ Check if already voided
-      if (sale.status === 'VOIDED' || sale.void) {
+      if (sale.status === 'VOIDED') {
         throw new BadRequestException('Sale already voided');
       }
 
-      const saleItems = sale.saleItems as Array<{
-        id: string;
-        quantity: number;
-        inventoryBatchId: string;
-        unitPrice: Prisma.Decimal;
-        totalPrice: Prisma.Decimal;
-        saleId: string;
-        drugId: string;
-      }>;
-
       // 3️⃣ Restore inventory for each sale item
-      for (const item of saleItems) {
+      for (const item of sale.saleItems) {
         await tx.inventoryBatch.update({
           where: { id: item.inventoryBatchId },
           data: { quantityRemaining: { increment: item.quantity } },
