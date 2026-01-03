@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { InventorybatchService } from './inventorybatch.service';
 import { CreateInventoryBatchDto } from './dto/create-inventorybatch.dto';
-import { UpdateInventorybatchDto } from './dto/update-inventorybatch.dto';
+import { UpdateInventoryBatchDto } from './dto/update-inventorybatch.dto';
 
 @Controller('inventorybatch')
 export class InventorybatchController {
@@ -33,9 +33,9 @@ export class InventorybatchController {
   @Patch(':id')
   update(
     @Param('id') id: string,
-    @Body() updateInventorybatchDto: UpdateInventorybatchDto,
+    @Body() updateInventoryBatchDto: UpdateInventoryBatchDto,
   ) {
-    return this.inventorybatchService.update(id, updateInventorybatchDto);
+    return this.inventorybatchService.update(id, updateInventoryBatchDto);
   }
 
   @Delete(':id')

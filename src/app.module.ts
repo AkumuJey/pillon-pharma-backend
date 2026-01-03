@@ -11,6 +11,7 @@ import { DrugsModule } from './drugs/drugs.module';
 import { DrugCategoryModule } from './drug-category/drug-category.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
 import { InventorybatchModule } from './inventorybatch/inventorybatch.module';
+import { SalesModule } from './sales/sales.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { InventorybatchModule } from './inventorybatch/inventorybatch.module';
     DrugCategoryModule,
     SuppliersModule,
     InventorybatchModule,
+    SalesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -36,6 +36,7 @@ export class InventorybatchService {
         sellingPriceSnapshot,
         supplierId,
         drugId,
+        createdById: '',
       },
     });
     return newBatch;
