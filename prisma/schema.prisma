@@ -21,6 +21,7 @@ model User {
   sessions         Session[]
   sales            Sale[]
   inventoryBatches InventoryBatch[]
+  salesVoided      SaleVoid[]       @relation("SalesVoidedBy")
 }
 
 enum UserRole {
@@ -125,6 +126,12 @@ model InventoryBatch {
   @@unique([drugId, batchNumber])
 }
 
+enum SaleStatus {
+  COMPLETED
+  VOIDED
+  REVERSED
+}
+
 //////////////////////////////////////////////////////
 // SALES (POS)
 //////////////////////////////////////////////////////
@@ -137,11 +144,13 @@ model Sale {
   createdById String
   createdBy   User   @relation(fields: [createdById], references: [id])
 
-  createdAt DateTime @default(now())
+  createdAt DateTime   @default(now())
+  status    SaleStatus @default(COMPLETED)
 
   saleItems SaleItem[]
   session   Session?   @relation(fields: [sessionId], references: [id])
   sessionId String?
+  saleVoid  SaleVoid?
 
   @@index([createdAt])
   @@index([createdById])
@@ -160,6 +169,20 @@ model SaleItem {
   sale           Sale           @relation(fields: [saleId], references: [id])
   drug           Drug           @relation(fields: [drugId], references: [id])
   inventoryBatch InventoryBatch @relation(fields: [inventoryBatchId], references: [id])
+}
+
+model SaleVoid {
+  id String @id @default(cuid())
+
+  saleId String @unique
+  sale   Sale   @relation(fields: [saleId], references: [id])
+
+  reason String
+
+  createdById String
+  createdBy   User   @relation("SalesVoidedBy", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
 }
 
 //////////////////////////////////////////////////////

@@ -27,3 +27,9 @@ export class CreateSaleDto {
   @Type(() => CreateSaleItemDto)
   items: CreateSaleItemDto[];
 }
+
+export class RevokeSaleDto {
+  @IsString()
+  @IsNotEmpty({ message: 'A reason for revocation must be provided' })
+  reason: string;
+}

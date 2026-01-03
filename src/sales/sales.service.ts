@@ -1,5 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateSaleDto } from './dto/create-sale.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { CreateSaleDto, RevokeSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PrismaClient } from 'src/generated/prisma/client';
@@ -77,6 +81,74 @@ export class SalesService {
 
   update(id: number, updateSaleDto: UpdateSaleDto) {
     return `This action updates a #${id} sale`;
+  }
+  async revokeSale(
+    saleId: string,
+    revokedByUserId: string,
+    revokeSaleDto: RevokeSaleDto,
+  ) {
+    const { reason } = revokeSaleDto;
+
+    return this.prisma.$transaction(async (tx: PrismaClient) => {
+      // 1️⃣ Fetch the sale with items and void relation
+      const sale = await tx.sale.findUniqueOrThrow({
+        where: { id: saleId },
+        include: { saleItems: true, void: true },
+      });
+
+      if (!sale) {
+        throw new NotFoundException('Sale not found');
+      }
+
+      // 2️⃣ Check if already voided
+      if (sale.status === 'VOIDED' || sale.void) {
+        throw new BadRequestException('Sale already voided');
+      }
+
+      const saleItems = sale.saleItems as Array<{
+        id: string;
+        quantity: number;
+        inventoryBatchId: string;
+        unitPrice: Prisma.Decimal;
+        totalPrice: Prisma.Decimal;
+        saleId: string;
+        drugId: string;
+      }>;
+
+      // 3️⃣ Restore inventory for each sale item
+      for (const item of saleItems) {
+        await tx.inventoryBatch.update({
+          where: { id: item.inventoryBatchId },
+          data: { quantityRemaining: { increment: item.quantity } },
+        });
+
+        await tx.stockMovement.create({
+          data: {
+            inventoryBatchId: item.inventoryBatchId,
+            movementType: 'ADJUSTMENT_IN',
+            quantity: item.quantity,
+            referenceId: sale.id,
+          },
+        });
+      }
+
+      // 4️⃣ Mark the sale as VOIDED
+      await tx.sale.update({
+        where: { id: sale.id },
+        data: { status: 'VOIDED' },
+      });
+
+      await tx.saleVoid.create({
+        data: {
+          reason,
+          createdById: revokedByUserId,
+          saleId: sale.id,
+        },
+      });
+
+      // 6️⃣ Return success
+      return { message: 'Sale revoked successfully' };
+    });
   }
 
   remove(id: number) {
