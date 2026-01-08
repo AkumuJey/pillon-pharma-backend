@@ -1,15 +1,6 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
-import { SalesService } from './sales.service';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { CreateSaleDto, RevokeSaleDto } from './dto/create-sale.dto';
-import { UpdateSaleDto } from './dto/update-sale.dto';
+import { SalesService } from './sales.service';
 
 @Controller('sales')
 export class SalesController {
@@ -17,7 +8,7 @@ export class SalesController {
 
   @Post()
   create(@Body() createSaleDto: CreateSaleDto) {
-    return 'Hello';
+    return this.salesService.recordSale(createSaleDto, '');
   }
 
   @Post()
@@ -32,16 +23,11 @@ export class SalesController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.salesService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSaleDto: UpdateSaleDto) {
-    return this.salesService.update(+id, updateSaleDto);
+    return this.salesService.findOne(id);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.salesService.remove(+id);
+    return this.salesService.remove(id);
   }
 }

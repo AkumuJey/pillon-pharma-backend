@@ -3,11 +3,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateSaleDto, RevokeSaleDto } from './dto/create-sale.dto';
-import { UpdateSaleDto } from './dto/update-sale.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { PrismaClient } from 'src/generated/prisma/client';
 import { Prisma } from '@prisma/client';
+import { PrismaClient } from 'src/generated/prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateSaleDto, RevokeSaleDto } from './dto/create-sale.dto';
 
 @Injectable()
 export class SalesService {
@@ -58,6 +57,7 @@ export class SalesService {
             movementType: 'SALE',
             quantity: item.quantiy,
             inventoryBatchId: batch.id,
+            reason: 'Sale recorded',
           },
         });
       }
@@ -71,17 +71,16 @@ export class SalesService {
     });
   }
 
-  findAll() {
-    return `This action returns all sales`;
+  async findAll() {
+    return await this.prisma.sale.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} sale`;
+  async findOne(id: string) {
+    return await this.prisma.sale.findUnique({
+      where: { id },
+    });
   }
 
-  update(id: number, updateSaleDto: UpdateSaleDto) {
-    return `This action updates a #${id} sale`;
-  }
   async revokeSale(
     saleId: string,
     revokedByUserId: string,
@@ -118,6 +117,7 @@ export class SalesService {
             movementType: 'ADJUSTMENT_IN',
             quantity: item.quantity,
             referenceId: sale.id,
+            reason,
           },
         });
       }
@@ -141,7 +141,9 @@ export class SalesService {
     });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} sale`;
+  async remove(id: string) {
+    return await this.prisma.sale.delete({
+      where: { id },
+    });
   }
 }
