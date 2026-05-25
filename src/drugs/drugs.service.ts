@@ -38,7 +38,6 @@ export class DrugsService {
           'Drug with the same brand name and dosage already exists',
         );
       }
-
       const newDrug = await this.prismaClient.prisma.drug.create({
         data: {
           brandName,
@@ -97,7 +96,6 @@ export class DrugsService {
       });
       return updatedDrug;
     } catch (error) {
-      // Prisma “record not found” error
       if (error?.code === 'P2025') {
         throw new NotFoundException(`Drug category with id ${id} not found`);
       }

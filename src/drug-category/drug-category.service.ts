@@ -53,7 +53,6 @@ export class DrugCategoryService {
       });
       return updated;
     } catch (error) {
-      // Prisma “record not found” error
       if (error?.code === 'P2025') {
         throw new NotFoundException(`Drug category with id ${id} not found`);
       }
